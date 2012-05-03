@@ -12,7 +12,7 @@ module PgSearch
         :dependent => :delete
 
       after_create :create_pg_search_document,
-        :if => lambda { PgSearch.multisearch_enabled? }
+        :if => lambda { PgSearch.multisearch_enabled? and self.approval_status == 'approved' and self.include_in_search }
 
       after_update :update_pg_search_document,
         :if => lambda { PgSearch.multisearch_enabled? }
@@ -20,6 +20,9 @@ module PgSearch
 
     def update_pg_search_document
       create_pg_search_document unless self.pg_search_document
+      unless self.approval_status == 'approved' and self.include_in_search
+        self.pg_search_document.content = ''
+      end
       self.pg_search_document.save
     end
   end
